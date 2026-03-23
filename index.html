@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureConnect Escrow - Trust the Protocol</title>
+    <style>
+        /* Define the design system and Glass effect */
+        :root {
+            --bg-color: #0a0e17;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #e0e6ed;
+            --text-secondary: #94a3b8;
+            --accent: #38bdf8; /* Blue Accent */
+            --glow: 0 0 15px rgba(56, 189, 248, 0.3);
+            --font-stack: 'SF Mono', 'Roboto Mono', Menlo, monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-stack);
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #111827 0%, #0a0e17 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* The main "Glass" panel */
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* SVG Icon Library (Defined here for security/portability) */
+        /* Use fill="none" stroke="currentColor" to inherit colors from text */
+        .icon {
+            width: 24px; height: 24px;
+            stroke-width: 1.5;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        .icon-large { width: 48px; height: 48px; margin-right: 0; margin-bottom: 1rem; }
+        .accent-icon { color: var(--accent); }
+
+        /* Icons as symbols for re-use */
+        svg.symbol-defs { display: none; }
+
+        /* Section Styling */
+        section { margin-bottom: 3rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 2rem; }
+        section:last-child { border-bottom: none; margin-bottom: 0; }
+
+        /* Typography */
+        h1, h2, h3 { font-weight: 500; color: var(--text-primary); }
+        h1 { font-size: 2rem; display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem; }
+        h1::before { content: 'S/C'; color: var(--accent); font-weight: 700; border: 2px solid var(--accent); padding: 2px 6px; border-radius: 4px; font-size: 1rem;}
+        
+        .hero-subtitle { color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem; display: flex; align-items: center; }
+        h2 { font-size: 1.5rem; color: var(--accent); margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; }
+        h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-primary); }
+        p { color: var(--text-secondary); margin-bottom: 1rem; font-size: 0.95rem;}
+
+        /* Process Steps (Workflow) with Icons */
+        .process-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+        .step { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); padding: 1.5rem; border-radius: 8px; transition: transform 0.2s; text-align: center; }
+        .step:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: var(--glow); }
+        .step-number { color: var(--accent); font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem; display: block;}
+
+        /* PGP Key Area */
+        .pgp-block {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-size: 0.8rem;
+            overflow-x: auto;
+            color: #a1a7b3;
+            margin-bottom: 1rem;
+            white-space: pre;
+        }
+        .fingerprint { color: var(--text-secondary); font-size: 0.85rem; border-left: 2px solid var(--accent); padding-left: 10px; margin-bottom: 0.5rem; display: flex; align-items: center;}
+
+        /* Fee Grid */
+        .fee-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .fee-item { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 8px; display: flex; align-items: center; gap: 15px;}
+        .fee-label { color: var(--text-secondary); font-size: 0.9rem; }
+        .fee-value { color: var(--accent); font-size: 1.3rem; font-weight: bold; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #526173;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--glass-border);
+        }
+        .onion-url { color: var(--accent); opacity: 0.7; }
+
+    </style>
+</head>
+<body>
+
+    <svg class="symbol-defs">
+        <symbol id="icon-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </symbol>
+        <symbol id="icon-key" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zm0 0L15.5 9.5m0 0l3 3m-3-3l2.5-2.5"/>
+        </symbol>
+        <symbol id="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </symbol>
+        <symbol id="icon-bitcoin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M6 18h4.5c.7 0 1.2-.5 1.2-1.2v-1.1c0-.7-.5-1.2-1.2-1.2H6M6 9.5h3.5c.7 0 1.2-.5 1.2-1.2V6.2C10.7 5.5 10.2 5 9.5 5H6m0 14V5m0 14H3m3-14H3m3 4.5h6c.7 0 1.2.5 1.2 1.2v1.1c0 .7-.5 1.2-1.2 1.2H6m9.5 5.2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+        </symbol>
+        <symbol id="icon-truck" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="1" y="3" width="15" height="13"/>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+        </symbol>
+        <symbol id="icon-handshake" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M11 16h2a2 2 0 1 0 0-4h-2a2 2 0 1 0 0 4Z"/>
+            <path d="m11 16 1.7-1.7C13 14 13 13.5 12.7 13.2L11 11.5"/>
+            <path d="m13 16-1.7-1.7c-.3-.3-.3-.8 0-1.1l1.7-1.7"/>
+            <path d="M18 10V6c0-1.1-.9-2-2-2H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4"/>
+            <path d="M16 14v6m3-3h-6"/>
+        </symbol>
+    </svg>
+
+    <div class="container">
+        
+        <section class="hero">
+            <h1><svg class="icon accent-icon"><use href="#icon-shield"/></svg>Decentralized Multi-Sig Escrow</h1>
+            <p class="hero-subtitle">Neutral. Anonymous. Protocol-Enforced.</p>
+            <p>We provide secure 2-of-3 Multi-signature Bitcoin escrow services for high-value transactions. In a world without trust, we enforce the agreement using cryptography. <strong>You do not need to trust us. You only need to trust the protocol.</strong></p>
+        </section>
+
+        <section id="process">
+            <h2><svg class="icon accent-icon"><use href="#icon-key"/></svg>Our Workflow</h2>
+            <div class="process-grid">
+                <div class="step">
+                    <span class="step-number">01</span>
+                    <svg class="icon icon-large accent-icon"><use href="#icon-chat"/></svg>
+                    <h3>Agreement</h3>
+                    <p>Both parties define terms in a PGP-encrypted session.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">02</span>
+                    <svg class="icon icon-large accent-icon"><use href="#icon-bitcoin"/></svg>
+                    <h3>Deposit</h3>
+                    <p>Buyer funds the unique 2-of-3 Multi-sig address.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">03</span>
+                    <svg class="icon icon-large accent-icon"><use href="#icon-truck"/></svg>
+                    <h3>Delivery</h3>
+                    <p>Seller verifies deposit and provides the product/service.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">04</span>
+                    <svg class="icon icon-large accent-icon"><use href="#icon-handshake"/></svg>
+                    <h3>Release</h3>
+                    <p>Buyer confirms receipt. and we (2-of-3 signatures) release the fund to the buyer.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="disputes">
+            <h2>Dispute Resolution</h2>
+            <p>If the agreement conditions are not met, either party may trigger a dispute. As the neutral third-party keyholder, we arbitrate based on predefined evidence protocols (PGP logs, verifiable delivery proof, etc).</p>
+            <p>Our verdict is final, enforced by the 2nd signature required to complete the transaction.</p>
+            <p>so we'll make sure both the buyer and seller goes home happy  without any scams</p>
+        </section>
+
+        <section id="identity">
+            <h2>Verify Identity (PGP)</h2>
+            <p>All communication must be PGP-encrypted. Verify our identity using the public key below:</p>
+            
+            <div class="pgp-block">-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+ZLJNfglPhngNGrovLTGjWo2YggD5GQ==
+=vmTp
+-----END PGP PUBLIC KEY BLOCK-----</div>
+
+            <p class="fingerprint">Fingerprint: (Loading)<br><br></p>
+            
+            <p class="fingerprint">Escrow Master Public Key(zpub):&nbsp;will be given to you after business is agreed on</p>
+            <p class="fingerprint"></p>
+        </section>
+
+        <section id="fees">
+            <h2>Fee Structure</h2>
+            <div class="fee-grid">
+                <div class="fee-item">
+                    <svg class="icon-large accent-icon"><use href="#icon-bitcoin"/></svg>
+                    <div>
+                        <div class="fee-label">Standard Services</div>
+                        <div class="fee-value">3%</div>
+                        <p>(Minimum fee applies)</p>
+                    </div>
+                </div>
+                <div class="fee-item">
+                     <svg class="icon-large accent-icon"><use href="#icon-shield"/></svg>
+                     <div>
+                        <div class="fee-label">web3 / High-Risk</div>
+                        <div class="fee-value">5%</div>
+                        <p>(Based on complexity)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>&copy; SecureConnect Escrow 2026. All rights reserved.</p>
+
+        </footer>
+
+    </div>
+</body>
+</html>
